@@ -1,0 +1,5 @@
+ID,HOTEL_NOMBRE,TIPO_HABITACION,REGIMEN,PRECIO_NOCHE_EUR,SUPLEMENTO_COMIDA_EUR,OBSERVACIONES
+HTL-TGN-SB-IND,Hotel SB Express Tarragona 3*,Individual (SGL),Alojamiento y Desayuno,129.00,30.00,Tarifa corporativa marina Tarragona
+HTL-TGN-SB-DBL,Hotel SB Express Tarragona 3*,Doble (DBL),Alojamiento y Desayuno,157.00,30.00,Dos camas individuales Tarragona
+HTL-TGN-IM-IND,Hotel Ciutat de Tarragona 4*,Individual (SGL),Alojamiento y Desayuno,153.00,35.00,Cerca del puerto de Tarragona
+HTL-TGN-IM-DBL,Hotel Ciutat de Tarragona 4*,Doble (DBL),Alojamiento y Desayuno,180.00,35.00,Cerca del puerto de Tarragona

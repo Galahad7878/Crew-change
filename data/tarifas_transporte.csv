@@ -1,0 +1,14 @@
+ID,ORIGEN,DESTINO,TIPO_VEHICULO,CAPACIDAD_PAX,PRECIO_COSTO_EUR,RECARGO_NOCTURNO_PCT,OBSERVACIONES
+TR-TGN-BCN-SED,Aeropuerto,Puerto,Sedan / Taxi,3 Pax,269.00,30%,Tarifa por trayecto
+TR-TGN-LOCAL-SED,Hotel,Puerto,Sedan,3 Pax,38.40,30%,Tarifa por trayecto
+TR-TGN-IMM-SED,Hotel,Inmigracion,Sedan,3 Pax,46.20,30%,Tarifa por trayecto
+TR-TGN-VISA-SED,Hotel,Visado,Sedan,3 Pax,115.50,30%,Tarifa por trayecto
+TR-TGN-BCN-VAN,Aeropuerto,Puerto,Van,7 Pax,356.00,30%,Tarifa por trayecto
+TR-TGN-LOCAL-VAN,Hotel,Puerto,Van,7 Pax,65.00,30%,Tarifa por trayecto
+TR-TGN-IMM-VAN,Hotel,Inmigracion,Van,7 Pax,78.20,30%,Tarifa por trayecto
+TR-TGN-VISA-VAN,Hotel,Visado,Van,7 Pax,142.00,30%,Tarifa por trayecto
+TR-TGN-BCN-BUS,Aeropuerto,Puerto,Minibus,16 Pax,420.00,30%,Tarifa por trayecto
+TR-TGN-LOCAL-BUS,Hotel,Puerto,Minibus,16 Pax,120.12,30%,Tarifa por trayecto
+TR-TGN-IMM-BUS,Hotel,Inmigracion,Minibus,16 Pax,120.12,30%,Tarifa por trayecto
+TR-TGN-VISA-BUS,Hotel,Visado,Minibus,16 Pax,220.80,30%,Tarifa por trayecto
+TR-TGN-LANCHA,Puerto,Fondeadero,Lancha Pasaje,10 Pax,787.90,30%,Lancha al fondeadero

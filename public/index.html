@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motor de Cotización de Cambios de Tripulantes | Multi-Agente CSV</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header Section -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-icon">⚓</span>
+      <div class="brand-text">
+        <h1>Motor de Cotización Multi-Agente (Puerto Tarragona)</h1>
+        <p>Agentes Especializados: TextParser 🔍 • Transporte 🚚 • Hoteles 🏨 • Fees 💼</p>
+      </div>
+    </div>
+    <div class="header-status">
+      <div id="statusBadge" class="status-badge">
+        <span class="status-dot"></span> Tarifas CSV activas en data/
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container: 3-Column Layout -->
+  <main class="app-container">
+
+    <!-- COLUMN 1: Project Tree Explorer (Agentes, Skills & Tarifas CSV) -->
+    <aside class="tree-col">
+      <div class="card" style="height: calc(100% - 1.25rem);">
+        <div class="card-title">
+          <div class="card-title-text">
+            <span>🌳</span> <span>Estructura de Agentes & Datos</span>
+          </div>
+          <span class="badge-tag">Árbol</span>
+        </div>
+        <p style="font-size: 0.78rem; color: #64748b; margin-bottom: 1rem;">
+          Haz clic en cualquier <strong>SKILLS.md</strong> para editar las habilidades del agente, o en los <strong>CSV</strong> para consultar/modificar los costes.
+        </p>
+
+        <!-- Project Tree Container -->
+        <div id="projectTreeContainer" class="tree-explorer">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- COLUMN 2: Input & Extraction -->
+    <section class="middle-col">
+
+      <!-- Card 1: Email Request Parsing -->
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-text">
+            <span>📩</span> <span>1. Correo o Texto Libre del Cliente (Español / Inglés)</span>
+          </div>
+          <span class="badge-tag">Agente TextParser</span>
+        </div>
+
+        <div class="presets-bar">
+          <span class="presets-label">Probar Ejemplos Rápidos:</span>
+          <button id="preset1Btn" class="btn-sample-preset">⚡ Ejemplo 1: Tarragona (Muelle + Hotel + Transfers)</button>
+          <button id="preset2Btn" class="btn-sample-preset">⚡ Ejemplo 2: Tarragona (Fondeadero Urgente)</button>
+        </div>
+
+        <div class="form-group">
+          <textarea id="emailInput" class="form-textarea" placeholder="Pegue aquí el correo electrónico recibido del armador o cliente o escriba texto libre en español o inglés..."></textarea>
+        </div>
+
+        <button id="btnParseEmail" class="btn-primary">
+          🔍 Extraer Datos con TextParser y Cotizar
+        </button>
+      </div>
+
+      <!-- Card 2: Operational Data & Service Tuning -->
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-text">
+            <span>⚙️</span> <span>2. Parámetros Operativos</span>
+          </div>
+          <span class="badge-tag">Coordinador</span>
+        </div>
+
+        <div class="grid-3 form-group">
+          <div>
+            <label class="form-label" for="vesselName">Nombre del Buque</label>
+            <input type="text" id="vesselName" class="form-control" value="M/V OCEAN GLORY">
+          </div>
+          <div>
+            <label class="form-label" for="portName">Puerto / Ubicación</label>
+            <input type="text" id="portName" class="form-control" value="Tarragona">
+          </div>
+          <div>
+            <label class="form-label" for="operationDate">Fecha (ETA)</label>
+            <input type="text" id="operationDate" class="form-control" value="">
+          </div>
+        </div>
+
+        <div class="grid-3 form-group">
+          <div>
+            <label class="form-label" for="onsigners">Onsigners (Embarque)</label>
+            <input type="number" id="onsigners" class="form-control" min="0" value="2">
+          </div>
+          <div>
+            <label class="form-label" for="offsigners">Offsigners (Desembarque)</label>
+            <input type="number" id="offsigners" class="form-control" min="0" value="3">
+          </div>
+          <div>
+            <label class="form-label" for="locationType">Ubicación del Buque</label>
+            <select id="locationType" class="form-select">
+              <option value="Berth" selected>Muelle / Pantalán (Berth)</option>
+              <option value="Anchorage">Fondeadero (Anchorage)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.25rem;">
+          <label class="form-label" style="margin-bottom: 0.75rem;">Delegación de Servicios por Agente:</label>
+
+          <!-- 1) Honorarios de Agencia -->
+          <div class="service-item-row">
+            <div class="service-item-left">
+              <input type="checkbox" id="chkImmigration" checked>
+              <div>
+                <div class="service-item-title">💼 Honorarios de Agencia</div>
+                <div class="service-item-desc">Tarifa base FEE-CREW-BASE (1-3 pax) o incremental (> 3 pax)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2) Transfers Terrestres (Aeropuerto y Locales) -->
+          <div class="service-item-row" style="flex-direction: column; align-items: stretch; gap: 0.6rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <div class="service-item-left">
+                <input type="checkbox" id="chkTransfers" checked>
+                <div>
+                  <div class="service-item-title">🚚 Transfers Terrestres (Aeropuerto / Puerto)</div>
+                  <div class="service-item-desc">Rutas Aeropuerto - Puerto Tarragona (Onsigners & Offsigners)</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <select id="vehicleType" class="form-select" style="padding: 0.25rem 0.4rem; font-size: 0.8rem; width: 110px;">
+                  <option value="Sedan" selected>Sedan / Taxi</option>
+                  <option value="Van">Van / Minivan</option>
+                  <option value="Minibus">Minibus</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Sub-opción: Transfers Locales (Hotel - Puerto) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding-left: 1.6rem; border-top: 1px dashed #e2e8f0; padding-top: 0.5rem;">
+              <div class="service-item-left">
+                <input type="checkbox" id="chkLocalTransfers">
+                <div>
+                  <div class="service-item-title" style="font-size: 0.82rem; font-weight: 600; color: #475569;">📍 Transfers Locales (Hotel / Puerto)</div>
+                  <div class="service-item-desc" style="font-size: 0.72rem;">Traslados urbanos entre Hotel y Puerto de Tarragona</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                <select id="localVehicleType" class="form-select" style="padding: 0.25rem 0.4rem; font-size: 0.8rem; min-width: 170px;">
+                  <option value="TR-TGN-LOCAL-SED" selected>TR-TGN-LOCAL-SED (Sedan 38.40€)</option>
+                  <option value="TR-TGN-LOCAL-VAN">TR-TGN-LOCAL-VAN (Van 65.00€)</option>
+                  <option value="TR-TGN-LOCAL-BUS">TR-TGN-LOCAL-BUS (Minibus 120.12€)</option>
+                </select>
+                <label for="localTransferTrips" style="font-size: 0.75rem; color: #64748b;">Trayectos:</label>
+                <input type="number" id="localTransferTrips" class="service-qty-input" style="width: 45px;" min="1" value="1">
+              </div>
+            </div>
+          </div>
+
+          <!-- 3) Alojamiento -->
+          <div class="service-item-row" style="flex-wrap: wrap; gap: 0.5rem;">
+            <div class="service-item-left" style="flex: 1; min-width: 240px;">
+              <input type="checkbox" id="chkHotel" checked>
+              <div>
+                <div class="service-item-title">🏨 Alojamiento</div>
+                <div class="service-item-desc">Gestiona reservas corporativas desde tarifas_hoteles.csv</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+              <select id="selectedHotelSelect" class="form-select" style="padding: 0.25rem 0.4rem; font-size: 0.8rem; min-width: 180px;">
+                <option value="HTL-TGN-SB-IND" selected>HTL-TGN-SB-IND (SB Express SGL 75€)</option>
+                <option value="HTL-TGN-SB-DBL">HTL-TGN-SB-DBL (SB Express DBL 95€)</option>
+                <option value="HTL-TGN-IM-IND">HTL-TGN-IM-IND (Imperial Tarraco SGL 115€)</option>
+                <option value="HTL-TGN-IM-DBL">HTL-TGN-IM-DBL (Imperial Tarraco DBL 145€)</option>
+              </select>
+              <label style="font-size: 0.75rem;">Hab:</label>
+              <input type="number" id="hotelRooms" class="service-qty-input" style="width: 45px;" min="1" value="1">
+              <label style="font-size: 0.75rem;">Noches:</label>
+              <input type="number" id="hotelNights" class="service-qty-input" style="width: 45px;" min="1" value="1">
+            </div>
+          </div>
+
+          <!-- 4) Visados -->
+          <div class="service-item-row" style="flex-wrap: wrap; gap: 0.5rem;">
+            <div class="service-item-left" style="flex: 1; min-width: 220px;">
+              <input type="checkbox" id="chkVisas">
+              <div>
+                <div class="service-item-title">🛂 Visados</div>
+                <div class="service-item-desc">Traslados a Inmigración por Visado Completo o Sellado Schengen</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <label for="fullVisaPax" style="font-size: 0.75rem; color: #475569; white-space: nowrap;">Visado Completo (pax):</label>
+                <input type="number" id="fullVisaPax" class="service-qty-input" style="width: 45px;" min="0" value="0">
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <label for="schengenVisaPax" style="font-size: 0.75rem; color: #475569; white-space: nowrap;">Visado Schengen (pax):</label>
+                <input type="number" id="schengenVisaPax" class="service-qty-input" style="width: 45px;" min="0" value="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- 5) Lancha al fondeadero -->
+          <div class="service-item-row">
+            <div class="service-item-left">
+              <input type="checkbox" id="chkLaunch">
+              <div>
+                <div class="service-item-title">🚤 Lancha al Fondeadero</div>
+                <div class="service-item-desc">Gestiona lancha de pasaje y amarre (si aplica en fondeadero)</div>
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: #64748b;">Trayectos:</label>
+              <input type="number" id="launchTrips" class="service-qty-input" min="1" value="1">
+            </div>
+          </div>
+
+          <!-- 6) Cartas de Invitación -->
+          <div class="service-item-row" style="flex-wrap: wrap; gap: 0.5rem;">
+            <div class="service-item-left" style="flex: 1; min-width: 220px;">
+              <input type="checkbox" id="chkLoi">
+              <div>
+                <div class="service-item-title">📜 Cartas de Invitación (LOI)</div>
+                <div class="service-item-desc">Gestión y emisión de Letter of Invitation (FEE-LOI-IBERICA)</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <label for="loiCount" style="font-size: 0.75rem; color: #475569; white-space: nowrap;">Nº de LOIs:</label>
+              <input type="number" id="loiCount" class="service-qty-input" style="width: 50px;" min="1" value="1">
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- COLUMN 3: Output & Email Generator -->
+    <section class="right-col">
+
+      <!-- Card 3: Itemized Proforma Quotation Table -->
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-text">
+            <span>📊</span> <span>3. Cotización Desglosada por Agente (PDA)</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <label style="font-size: 0.8rem; font-weight: 600;">Moneda:</label>
+            <select id="currencySelect" class="form-select" style="width: 90px; padding: 0.2rem 0.4rem; font-size: 0.85rem;">
+              <option value="EUR" selected>EUR (€)</option>
+              <option value="USD">USD ($)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="quote-table">
+            <thead>
+              <tr>
+                <th>Agente Emisor</th>
+                <th>Concepto</th>
+                <th style="text-align: center;">Cantidad</th>
+                <th style="text-align: right;">Tarifa Unit.</th>
+                <th style="text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="quoteTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="total-row-card">
+          <span class="total-title">TOTAL ESTIMATED PROFORMA COST:</span>
+          <span id="totalDisplay" class="total-amount-display">EUR 0.00</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Generated English Email Draft -->
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-text">
+            <span>✉️</span> <span>4. Borrador de Correo Electrónico en Inglés</span>
+          </div>
+          <span class="badge-tag" style="background-color: #dcfce7; color: #15803d;">Listo para Enviar</span>
+        </div>
+
+        <div class="email-preview-container">
+          <div id="emailBodyBox" class="email-body-box">Generando borrador...</div>
+        </div>
+
+        <div class="email-actions">
+          <button id="btnCopyEmail" class="btn-copy">
+            📋 Copiar Texto del E-mail
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Modal File Editor for SKILLS.md & CSVs -->
+  <div id="editorModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="editorModalTitle">📝 Editor de Archivo</h3>
+        <button id="editorCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="editorTextarea" class="editor-textarea"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="btnCancelEditor" class="btn-sample-preset" style="padding: 0.5rem 1rem;">Cancelar</button>
+        <button id="btnSaveEditor" class="btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">💾 Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/emailParser.js"></script>
+  
+  <!-- Agents Tree -->
+  <script src="../agents/textparser_agent/index.js"></script>
+  <script src="../agents/transport_agent/index.js"></script>
+  <script src="../agents/hotel_agent/index.js"></script>
+  <script src="../agents/fee_agent/index.js"></script>
+  <script src="../agents/coordinator.js"></script>
+
+  <script src="js/quoteEngine.js"></script>
+  <script src="js/emailGenerator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

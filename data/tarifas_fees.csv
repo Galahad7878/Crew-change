@@ -1,0 +1,8 @@
+﻿ID,CONCEPTO_FEE,TIPO_APLICACION,PRECIO_COSTO_EUR,OBSERVACIONES
+FEE-CREW-BASE,Honorarios Base Cambio Tripulacion (1 a 3 Pax),Tarifa Plana Base,150.00,Aplica para operaciones de 1 a 3 tripulantes en total
+FEE-CREW-ADDI,Honorarios por Tripulante (> 3 Pax),Por Tripulante,50.00,Multiplicar por numero total de paxes si es mayor a 3
+FEE-HTL-BOOK,Hotel Booking Arrangements,Por reserva de hotel,24.20,Una vez por cada reserva de hotel
+FEE-IMM-VISADO,Immigration Official Tax,Por cada tripulante con visado completo,90.00,Por cada tripulante
+FEE-IMM-SEAPOOLE,Immigration Appointment,Por grupo de tripulantes con visado completo,72.60,Por grupo de tripulantes
+FEE-IMM-IBERICA,Visa Arrangements,Por grupo de tripulantes con visado completo,62.50,Por grupo de tripulantes
+FEE-LOI-IBERICA,Letter of Invitation Formalities,Por carta,120.00,Por carta
