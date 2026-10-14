@@ -1,0 +1,27 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Large Model weights (downloaded from Hugging Face on demand)
+models/
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.onnx
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & Temp
+.DS_Store
+Thumbs.db
+*.log
+.cache/

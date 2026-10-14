@@ -301,15 +301,35 @@ Crewing Dept`;
   });
 
   // --- 6. Parse Email / Free Text using TextParserAgent ---
-  btnParseEmail.addEventListener('click', parseAndCalculate);
+  btnParseEmail.addEventListener('click', async () => {
+    const originalText = btnParseEmail.innerHTML;
+    btnParseEmail.innerHTML = `🧠 Extrayendo con Qwen2.5 3B Local...`;
+    btnParseEmail.disabled = true;
+    try {
+      await parseAndCalculate(true);
+    } catch (err) {
+      console.error('Error durante la extracción:', err);
+      // Fallback de emergencia garantizado
+      await parseAndCalculate(false);
+    } finally {
+      btnParseEmail.innerHTML = originalText;
+      btnParseEmail.disabled = false;
+    }
+  });
 
-  // Auto-parse on typing or pasting into Section 1
-  emailInput.addEventListener('input', parseAndCalculate);
-  emailInput.addEventListener('paste', () => setTimeout(parseAndCalculate, 50));
+  // Fast auto-parse on typing or pasting into Section 1 (sync rules)
+  emailInput.addEventListener('input', () => parseAndCalculate(false));
+  emailInput.addEventListener('paste', () => setTimeout(() => parseAndCalculate(false), 50));
 
-  function parseAndCalculate() {
+  async function parseAndCalculate(useLLM = false) {
     const text = emailInput.value;
-    const extracted = textParser ? textParser.parse(text) : (typeof EmailParser !== 'undefined' ? EmailParser.parse(text) : {});
+    let extracted;
+
+    if (useLLM && textParser && typeof textParser.parseAsync === 'function') {
+      extracted = await textParser.parseAsync(text);
+    } else {
+      extracted = textParser ? textParser.parse(text) : (typeof EmailParser !== 'undefined' ? EmailParser.parse(text) : {});
+    }
 
     // Update Section 2 Operational Parameters
     vesselNameInput.value = extracted.vesselName || 'M/V OCEAN GLORY';
@@ -323,7 +343,7 @@ Crewing Dept`;
     launchTripsInput.value = extracted.launchTrips || 1;
 
     chkTransfers.checked = extracted.needTransfers !== undefined ? extracted.needTransfers : true;
-    vehicleTypeSelect.value = extracted.vehicleType || 'Sedan';
+    vehicleTypeSelect.value = (extracted.vehicleType && extracted.vehicleType !== 'Sedan') ? extracted.vehicleType : 'Auto';
 
     chkLocalTransfers.checked = extracted.needLocalTransfers || false;
     localVehicleTypeSelect.value = extracted.localVehicleType || 'TR-TGN-LOCAL-SED';

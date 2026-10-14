@@ -5,6 +5,7 @@ const os = require('os');
 
 const PORT = 3000;
 const HOST = '0.0.0.0';
+const QWEN_PORT = 3001;
 const ROOT_DIR = __dirname;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
@@ -29,7 +30,7 @@ function getDirectoryTree(dirPath, relativeTo = ROOT_DIR) {
 
   if (stats.isDirectory()) {
     const children = fs.readdirSync(dirPath)
-      .filter(item => !item.startsWith('.') && item !== 'node_modules' && item !== 'public' && item !== 'scripts')
+      .filter(item => !item.startsWith('.') && item !== 'node_modules' && item !== 'public' && item !== 'scripts' && item !== 'models')
       .map(child => getDirectoryTree(path.join(dirPath, child), relativeTo));
     return { name, type: 'directory', path: relPath, children };
   } else {
@@ -52,6 +53,84 @@ function getLocalIpAddresses() {
 
 const server = http.createServer((req, res) => {
   let reqUrl = req.url.split('?')[0];
+
+  // API Endpoint: Health check for Qwen2.5 3B local LLM
+  if (reqUrl === '/api/qwen-status') {
+    const qwenReq = http.request({
+      hostname: '127.0.0.1',
+      port: QWEN_PORT,
+      path: '/health',
+      method: 'GET',
+      timeout: 2000
+    }, (qwenRes) => {
+      let data = '';
+      qwenRes.on('data', chunk => { data += chunk; });
+      qwenRes.on('end', () => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(data);
+      });
+    });
+
+    qwenReq.on('error', (err) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'offline', message: 'Qwen2.5 local service is not running' }));
+    });
+
+    qwenReq.on('timeout', () => {
+      qwenReq.destroy();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'timeout' }));
+    });
+
+    return qwenReq.end();
+  }
+
+  // API Endpoint: Proxy parse request to local Qwen2.5 3B Instruct
+  if (reqUrl === '/api/parse-text' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', () => {
+      const qwenReq = http.request({
+        hostname: '127.0.0.1',
+        port: QWEN_PORT,
+        path: '/parse',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        },
+        timeout: 90000
+      }, (qwenRes) => {
+        let qwenData = '';
+        qwenRes.on('data', chunk => { qwenData += chunk; });
+        qwenRes.on('end', () => {
+          res.writeHead(qwenRes.statusCode, { 'Content-Type': 'application/json' });
+          res.end(qwenData);
+        });
+      });
+
+      qwenReq.on('error', (err) => {
+        res.writeHead(503, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          error: 'Qwen2.5 3B local service unreachable: ' + err.message
+        }));
+      });
+
+      qwenReq.on('timeout', () => {
+        qwenReq.destroy();
+        res.writeHead(504, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          error: 'Qwen2.5 3B inference timeout (>90s)'
+        }));
+      });
+
+      qwenReq.write(body);
+      qwenReq.end();
+    });
+    return;
+  }
 
   // API Endpoint: Get Project Directory Tree
   if (reqUrl === '/api/tree') {
@@ -159,7 +238,8 @@ server.listen(PORT, HOST, () => {
   } else {
     console.log(`    👉 http://192.168.4.30:${PORT}`);
   }
-  console.log(`\n 📂 Carpeta de Agentes: ${AGENTS_DIR}`);
+  console.log(`\n 🤖 Modelo Local Qwen2.5 3B Instruct: http://127.0.0.1:${QWEN_PORT}`);
+  console.log(` 📂 Carpeta de Agentes: ${AGENTS_DIR}`);
   console.log(` 📊 Carpeta de Datos CSV: ${DATA_DIR}`);
   console.log(`=======================================================\n`);
 });

@@ -270,12 +270,16 @@ class TransportAgent {
   }
 
   getRateIdByPax(paxCount, userSelectedVehicle = null) {
-    if (userSelectedVehicle) {
+    // Si el usuario especificó un vehículo concreto (y no 'Auto'), respetar su elección
+    if (userSelectedVehicle && String(userSelectedVehicle).toLowerCase() !== 'auto') {
       const v = String(userSelectedVehicle).toLowerCase();
       if (v.includes('bus') || v.includes('minibus')) return 'TR-TGN-BCN-BUS';
       if (v.includes('van')) return 'TR-TGN-BCN-VAN';
       if (v.includes('sedan') || v.includes('taxi')) return 'TR-TGN-BCN-SED';
     }
+
+    // Selección automática según capacidad real de pasajeros:
+    // Sedan: 1 a 3 Pax | Van: 4 a 7 Pax | Minibus: 8 a 16 Pax
     if (paxCount <= 3) return 'TR-TGN-BCN-SED';
     if (paxCount <= 7) return 'TR-TGN-BCN-VAN';
     return 'TR-TGN-BCN-BUS';

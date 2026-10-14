@@ -1,19 +1,84 @@
 /**
- * Agente TEXTPARSER (TextParser Agent)
- * Especializado en la interpretación de texto libre (español e inglés) y correos electrónicos marítimos.
- * Extrae entidades operativas:
- * - Nombre de buque
- * - Onsigners y Offsigners
- * - Puerto / Ubicación (Por defecto: Tarragona / Berth)
- * - ETA (Por defecto: Fecha actual)
- * - Servicios: Hotel, Transfers (Aeropuerto y Locales), Visados, LOIs, Lancha
+ * Agente TEXTPARSER (TextParser Agent) con LLM Local Qwen2.5 3B Instruct
+ * Utiliza el modelo Qwen2.5-3B-Instruct en modo local (GGUF cuantizado q4_k_m)
+ * a través de la API local (/api/parse-text), con fallback automático a reglas regex
+ * en caso de que el backend de IA no esté iniciado o no responda.
  */
 class TextParserAgent {
   constructor(skillsPath = 'agents/textparser_agent/SKILLS.md') {
-    this.name = 'Agente TextParser';
+    this.name = 'Agente TextParser (Qwen2.5 3B Local)';
     this.skillsPath = skillsPath;
+    this.modelName = 'Qwen2.5-3B-Instruct (GGUF Local)';
   }
 
+  /**
+   * Intenta parsear usando Qwen2.5 3B Instruct local; si falla, timeout o no está disponible, usa fallback regex.
+   */
+  async parseAsync(text) {
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      return this.getDefaults();
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+      const response = await fetch('/api/parse-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const json = await response.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          const defaults = this.getDefaults();
+          return {
+            vesselName: d.vesselName || defaults.vesselName,
+            portName: d.portName || defaults.portName,
+            operationDate: d.operationDate || defaults.operationDate,
+            onsigners: typeof d.onsigners === 'number' ? d.onsigners : defaults.onsigners,
+            offsigners: typeof d.offsigners === 'number' ? d.offsigners : defaults.offsigners,
+            locationType: (d.locationType === 'Anchorage' || d.needLaunchBoat) ? 'Anchorage' : 'Berth',
+            needLaunchBoat: d.needLaunchBoat !== undefined ? Boolean(d.needLaunchBoat) : (d.locationType === 'Anchorage'),
+            launchTrips: d.launchTrips || 1,
+            needTransfers: d.needTransfers !== undefined ? Boolean(d.needTransfers) : defaults.needTransfers,
+            vehicleType: d.vehicleType || defaults.vehicleType,
+            needLocalTransfers: Boolean(d.needLocalTransfers),
+            localVehicleType: d.localVehicleType || defaults.localVehicleType,
+            localTransferTrips: d.localTransferTrips || 1,
+            needHotel: d.needHotel !== undefined ? Boolean(d.needHotel) : defaults.needHotel,
+            hotelNights: d.hotelNights || 1,
+            hotelRooms: d.hotelRooms || 1,
+            needImmigration: d.needImmigration !== undefined ? Boolean(d.needImmigration) : defaults.needImmigration,
+            needVisas: Boolean(d.needVisas),
+            fullVisaPax: d.fullVisaPax || 0,
+            schengenVisaPax: d.schengenVisaPax || 0,
+            needLoi: Boolean(d.needLoi),
+            loiCount: d.loiCount || 1,
+            currency: 'EUR',
+            _engine: 'Qwen2.5-3B-Instruct (Local LLM)'
+          };
+        }
+      } else {
+        console.warn('TextParserAgent: Respuesta HTTP no-OK (' + response.status + '), activando fallback regex.');
+      }
+    } catch (e) {
+      console.warn('TextParserAgent: Fallback a reglas regex activado:', e.message || e);
+    }
+
+    // Fallback garantizado a motor síncrono por reglas
+    const fallback = this.parse(text);
+    fallback._engine = 'Heurísticas Regex (Modo Fallback)';
+    return fallback;
+  }
+
+  /**
+   * Parseo síncrono clásico de reglas / regex (usado para live typing y fallback)
+   */
   parse(text) {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       return this.getDefaults();

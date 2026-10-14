@@ -16,11 +16,14 @@ Cotizar los traslados terrestres (aeropuerto y locales), servicios de lancha y t
 
 ### 2. Transfers Terrestres (Aeropuerto $\leftrightarrow$ Puerto)
 - La ruta predeterminada para las cotizaciones terrestres de enlace es **Aeropuerto $\rightarrow$ Puerto** (`ORIGEN = Aeropuerto`, `DESTINO = Puerto`).
-- **Cotización por Defecto**: 1 transporte para Onsigners + 1 transporte para Offsigners.
-- **Selección por ID de Vehículo**:
-  - **1 a 3 Pax (Sedan)**: ID **`TR-TGN-BCN-SED`** (269.00 €).
-  - **4 a 7 Pax (Van)**: ID **`TR-TGN-BCN-VAN`** (356.00 €).
-  - **Más de 7 Pax (Minibus)**: ID **`TR-TGN-BCN-BUS`** (420.00 €).
+- **Cotización por Defecto**: 1 transporte para Onsigners + 1 transporte para Offsigners (trayectos independientes).
+- **Selección Automática por Capacidad (Coordinador)**:
+  El coordinador evalúa la cantidad de tripulantes de cada trayecto por separado y selecciona automáticamente el vehículo óptimo:
+  - **1 a 3 Pax (Sedan / Taxi)**: ID **`TR-TGN-BCN-SED`** (269.00 €).
+  - **4 a 7 Pax (Van / Minivan)**: ID **`TR-TGN-BCN-VAN`** (356.00 €).
+  - **8 a 16 Pax (Minibus)**: ID **`TR-TGN-BCN-BUS`** (420.00 €).
+- **Opción Manual (Desplegable)**:
+  El usuario puede mantener el modo `⚡ Auto (Capacidad)` o forzar manualmente el tipo de vehículo (`Sedan`, `Van` o `Minibus`) desde el desplegable de la UI.
 
 ### 3. Transfers Locales (Hotel $\leftrightarrow$ Puerto)
 Cuando se activa la opción de **Transfers Locales**:
